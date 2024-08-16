@@ -1,2 +1,2 @@
-# Lab1-Prog-Conc
-Atividade 5  do laboratório 1  de Programação Concorrente
+# Lab-Prog-Conc
+Este repositório é referente aos laboratórios de Porgramação Concorrente.
