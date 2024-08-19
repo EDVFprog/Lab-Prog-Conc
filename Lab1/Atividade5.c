@@ -1,36 +1,45 @@
+/*
+Aluna: Eduarda Varela Fahr 
+/* DRE : 120012515 
+/* Laboratório: 1 
+/* Codigo: Somar 1 ao array usando threads em C
+*/
 #include <stdio.h>
 #include <stdlib.h> 
 #include <pthread.h>
 #include <math.h>
 
 
-//cria a estrutura de dados para armazenar os argumentos da thread
+//Cria a estrutura de dados para armazenar os argumentos da thread
 typedef struct {
    int idThread, mThreads,nThreads;
    int * arrayThreads;
    
 } t_Args;
 
+// Função responsável por somar 1 ao vetor e verificar por meio de impressão via tela que a soma foi realizada
 void *somavetor (void *arg) {
 
   //typecarting do argumento
   t_Args args = *(t_Args*) arg;
-  
-   int chunk_size = ceil(args.nThreads / (double)args.mThreads);
-
-// e consertar o join
-  int start = (args.idThread-1) * chunk_size;
-  int end = fmin((args.idThread) * chunk_size, args.nThreads );
-
-        for (int j = start; j < end; j++) {
-            args.arrayThreads[j] = args.arrayThreads[j]+1;
-            printf("%d",args.arrayThreads[j]) ;
+  //divide em pedaços o vetor
+   int pedaco = ceil(args.nThreads / (double)args.mThreads);
+  // define o começo para cada thread do vetor
+  int com = (args.idThread-1) * pedaco;
+  //define o final para cada thread do vetor
+  int fin = fmin((args.idThread) * pedaco, args.nThreads );
+  //aloca um vetor novo resultado
+  int *result = (int*)malloc(args.nThreads * sizeof(int));
+  for (int j = com; j < fin; j++) {
+        result[j] = args.arrayThreads[j]+1;
+        printf("A thread de id %d processou o número %d  do array original resultando em %d", args.idThread,args.arrayThreads[j],result[j]);
+        printf("\n");
         }
 
 
   free(arg); //libera a memoria que foi alocada na main
-
   pthread_exit(NULL);
+
 }
 
 // Cria um array de tamanho N e retorna um ponteiro para ele
@@ -44,30 +53,31 @@ int* Cria_array(int N) {
     return vetor;
 }
 
-//Função para teste do vetor
-//Complementar a Main para pegar os argumentos para a thread e os testes
+
 int main(int argc, char* argv[]) {
     t_Args *args; //receberá os argumentos para a thread
     int M; //qtde de threads que serao criadas (recebida na linha de comando)
     int N;
     //verifica se o argumento 'qtde de threads' foi passado e armazena seu valor
-    if(argc<2) {
+    if(argc<3) {
        printf("--ERRO: informe a qtde de threads <%s> <M>\n", argv[0]);
        return 1;
     }
+  // Recebendo M e N.
     M = atoi(argv[1]);
     N =atoi(argv[2]);
  //identificadores das threads no sistema
   pthread_t tid_sistema[M];
 
   //cria as threads
-  for(int i=1; i<=M; i++) {
-    printf("--Aloca e preenche argumentos para thread %d\n", i);
-    args = malloc(sizeof(t_Args));
-    if (args == NULL) {
-      printf("--ERRO: malloc()\n"); 
-      return 2;
+    for(int i=1; i<=M; i++) {
+       printf("--Aloca e preenche argumentos para thread %d\n", i);
+       args = malloc(sizeof(t_Args));
+       if (args == NULL) {
+          printf("--ERRO: malloc()\n"); 
+       return 2;
     }
+    // define os args para as threads
     int *array =Cria_array(N);
     args->idThread = i; 
     args->mThreads = M; 
@@ -87,5 +97,6 @@ int main(int argc, char* argv[]) {
         }
   //log da função principal
   printf("--Thread principal terminou\n");
+
 
 }
