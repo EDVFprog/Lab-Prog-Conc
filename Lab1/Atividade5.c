@@ -31,9 +31,7 @@ void *somavetor (void *arg) {
   //aloca um vetor novo resultado
   int *result = (int*)malloc(args.nThreads * sizeof(int));
   for (int j = com; j < fin; j++) {
-        result[j] = args.arrayThreads[j]+1;
-        printf("A thread de id %d processou o número %d  do array original resultando em %d", args.idThread,args.arrayThreads[j],result[j]);
-        printf("\n");
+        args.arrayThreads[j] = args.arrayThreads[j]+1;
         }
 
 
@@ -53,7 +51,22 @@ int* Cria_array(int N) {
     return vetor;
 }
 
+// Função de verificação
+void verifica(int *v1, int *v2, int N) {
+    int iguais = 1; // Inicializa uma  flag como verdadeira se forem iguais
 
+    for (int i = 0; i < N && iguais; i++) {
+        if (v1[i] != v2[i]) {
+            iguais = 0; // Caso os elementos sejam diferente a flag é falsa 
+        }
+    }
+ //Printa a mensagem conforme o valor da flag
+    if (iguais) {
+        printf("Resultado de verificação correto\n");
+    } else {
+        printf("Resultado de verificação incorreto, os vetores são diferentes\n");
+    }
+}
 int main(int argc, char* argv[]) {
     t_Args *args; //receberá os argumentos para a thread
     int M; //qtde de threads que serao criadas (recebida na linha de comando)
@@ -68,7 +81,8 @@ int main(int argc, char* argv[]) {
     N =atoi(argv[2]);
  //identificadores das threads no sistema
   pthread_t tid_sistema[M];
-
+  //cria vetor
+  int *array =Cria_array(N);
   //cria as threads
     for(int i=1; i<=M; i++) {
        printf("--Aloca e preenche argumentos para thread %d\n", i);
@@ -78,7 +92,6 @@ int main(int argc, char* argv[]) {
        return 2;
     }
     // define os args para as threads
-    int *array =Cria_array(N);
     args->idThread = i; 
     args->mThreads = M; 
     args->arrayThreads =  array;
@@ -95,8 +108,12 @@ int main(int argc, char* argv[]) {
              printf("--ERRO: pthread_join() da thread %d\n", i);
         }
         }
+        
   //log da função principal
   printf("--Thread principal terminou\n");
 
+   // verifica se os array são iguais   
+  verifica(args->arrayThreads,array,N);
+  free(array);
 
 }
