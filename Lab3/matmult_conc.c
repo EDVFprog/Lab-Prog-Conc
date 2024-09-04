@@ -12,8 +12,8 @@ int linhasA, colunasA; //dimensoes da matriz A
 int linhasB, colunasB; //dimensoes da matriz B
 typedef struct{
    int id; //identificador do elemento que a thread ira processar
-  int start_row;
-    int end_row;
+  int in;
+    int fim;
 } tArgs;
 
 //funcao que as threads executarao
@@ -29,7 +29,7 @@ void * mult(void *arg) {
      
       
     
-     for (int i = args->start_row; i < args->end_row; i++) {
+     for (int i = args->in; i < args->fim; i++) {
         for (int j=0; j<colunasB; j++) {
             for (int k =0; k<colunasA; k++) {
                 saida[i*colunasB+j] += matrizA[i*colunasA + k] * matrizB[k*colunasB+j];
@@ -163,13 +163,13 @@ int main(int argc, char* argv[]) {
    if(args==NULL) {puts("ERRO--malloc"); return 2;}
     
    //criacao das threads
-    int chunk_size = linhasA / nthreads;
+    int pedaco = linhasA / nthreads;
     for (int i = 0; i < nthreads; i++) {
         (args + i)->id = i;
-        (args + i)->start_row = i * chunk_size;
-        (args + i)->end_row = (i + 1) * chunk_size;
+        (args + i)->in = i * pedaco;
+        (args + i)->fim = (i + 1) * pedaco;
         if (i == nthreads - 1) {
-            (args + i)->end_row = linhasA;
+            (args + i)->fim = linhasA;
         }
 
         if (pthread_create(tid + i, NULL, mult, (void*)(args + i))) {
