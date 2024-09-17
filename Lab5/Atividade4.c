@@ -6,47 +6,59 @@
 
 long int soma = 0; // Variável compartilhada entre as threads
 pthread_mutex_t mutex; // Variável de bloqueio para exclusão mútua
-pthread_cond_t cond;
-int count = 0; // Contador de múltiplos
+pthread_cond_t cond1,cond2; // variaveis de condições 
+int cont = 0; // Contador de múltiplos
+int flag=0;// flag que sinaliza quando achado um multiplo
 
-// Função executada pelas threads
+
 void *ExecutaTarefa(void *arg) {
-    long int id = (long int)arg;
-    printf("Thread : %ld está executando...\n", id);
+    
 
     for (int i = 0; i < 100000; i++) {
-        pthread_mutex_lock(&mutex); // Bloqueia a seção crítica
-        soma++;
-
-        if (!(soma % 10)) {
-            // Bloqueia a thread até receber o sinal da variável de condição
-            pthread_cond_wait(&cond, &mutex);
+        // exclusividade para cada thread
+        pthread_mutex_lock(&mutex);
+        soma++;// incrementa a variavel soma
+        //checa se a soma é multiplo de  10
+        if (soma % 10 == 0) {
+            flag=1;
+            pthread_cond_signal(&cond1);// envia o sinal para a thread para printar o valor do múltiplo
+            pthread_cond_wait(&cond2, &mutex);// bloqueia a thread até que seja printado o valor
+            
         }
-
-        pthread_mutex_unlock(&mutex); // Libera a seção crítica
-
-        if (count >= 20) {
-            break; // Interrompe o loop principal
-        }
+        pthread_mutex_unlock(&mutex);
+        //termina se o valor de soma for maior do que os 20 primeiros multiplos
+        if(cont>=20){
+           break;
+           }
+          
     }
 
-    printf("Thread : %ld terminou!\n", id);
+    printf("Thread Executa Tarefa - terminou!\n");
     pthread_exit(NULL);
 }
 
-// Função executada pela thread de log
 void *extra(void *args) {
-    printf("Extra : está executando...\n");
-
-    while (count < 20) {
-        printf("soma = %ld \n", soma);
-        count++;
-
-        // Sinaliza a variável de condição para liberar as threads bloqueadas
-        pthread_cond_signal(&cond);
+// exclusividade para cada thread
+    pthread_mutex_lock(&mutex);
+    // imprime o múltipĺo se achado
+    while (cont < 20) {
+      if(flag){
+         printf("soma = %ld\n", soma);
+         cont++;// incrementa o contador
+         flag=0;// reseta a flag para o próximo múltiplo
+         pthread_cond_signal(&cond2);// libera a thread após printar
+        }
+     
+      else{
+   
+        pthread_cond_wait(&cond1, &mutex);// bloqueia a thread caso nenhum multiplo seja encontrado
+        }
+        
     }
 
-    printf("Extra : terminou!\n");
+    pthread_mutex_unlock(&mutex);
+    printf("Extra: terminou!\n");
+   
     pthread_exit(NULL);
 }
 
@@ -54,9 +66,10 @@ void *extra(void *args) {
 int main() {
     pthread_t threads[NTHREADS];
 
-    /* Inicializa o mutex (bloqueio de exclusão mútua) e a variável de condição */
+    /* Inicializa o mutex (bloqueio de exclusão mútua) e as variaveis de condição */
     pthread_mutex_init(&mutex, NULL);
-    pthread_cond_init(&cond, NULL);
+    pthread_cond_init(&cond1, NULL);
+    pthread_cond_init(&cond2, NULL);
 
     /* Cria as threads */
     pthread_create(&threads[0], NULL, ExecutaTarefa, NULL);
@@ -67,10 +80,11 @@ int main() {
         pthread_join(threads[i], NULL);
     }
 
-    printf("Value of 'soma' = %ld\n", soma);
+    printf("Valor  'soma' = %ld\n", soma);
 
     pthread_mutex_destroy(&mutex);
-    pthread_cond_destroy(&cond);
+    pthread_cond_destroy(&cond1);
+    pthread_cond_destroy(&cond2);
 
     return 0;
 }
