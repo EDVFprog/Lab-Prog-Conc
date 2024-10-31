@@ -10,5 +10,5 @@ A finalidade do canal jobs é enviar os jobs enquanto a finalidade do canal done
 Se comentarmos a linha 32, gerariamos um deadlock pois a função ficará esperando um novo job, mesmo ele não existindo, isto por que não enviamos o sinal de termino dos jobs.
 ## Atividade 5
 Os valores de M e N são atribuidos dentro da thread.
-São utilizados dois canais como na atividade 3, um para o controle dos números e outro para a sinalização de finalização da tarefa.
-A corretude foi erificada através de prints para analisar a lista de valores e quantidade obtida de valores primos.
+São utilizados três canais como na atividade 5, um para a lista de números, outro para os números primos encontrados  e outro para a sinalização de finalização da tarefa.
+A corretude foi verificada através de prints para analisar a lista de valores e quantidade obtida de valores primos.
